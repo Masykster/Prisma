@@ -3,327 +3,605 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pemisah File HTML, CSS & JS</title>
+    <title>Color Palette Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
-        }
-        .container {
-            max-width: 900px;
-            margin: auto;
+            color: #1f2937;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             padding: 2rem;
         }
-        .file-box {
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 1.5rem;
-        }
-        textarea, pre {
-            min-height: 200px;
+
+        .container {
+            max-width: 900px;
             width: 100%;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
         }
-        textarea {
-            border: 1px solid #d1d5db;
+
+        .color-picker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
-        .action-btn {
-            background-color: #1c64f2;
-            color: white;
-            padding: 0.75rem 1.5rem;
+
+        #color-picker-canvas {
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .refresh-btn, .save-btn {
+            padding: 0.5rem 1rem;
             border-radius: 0.5rem;
+            font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.2s;
-            display: inline-block;
+            transition: background-color 0.2s, transform 0.2s;
         }
-        .action-btn.copy-btn {
-            background-color: #4b5563;
-        }
-        .action-btn:hover {
-            background-color: #1a56c4;
-        }
-        .action-btn.copy-btn:hover {
-            background-color: #374151;
-        }
-        .alert {
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            margin-top: 1rem;
-            font-weight: 500;
-        }
-        .alert-error {
-            background-color: #fee2e2;
-            color: #ef4444;
-        }
-        .copied-message {
-            position: fixed;
-            top: 10%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #22c55e;
+
+        .refresh-btn {
+            background-color: #4f46e5;
             color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            z-index: 100;
         }
-        .copied-message.show {
+
+        .refresh-btn:hover {
+            background-color: #4338ca;
+            transform: translateY(-2px);
+        }
+
+        .save-btn {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+        }
+
+        .palette-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .palette-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .color-box {
+            width: 100%;
+            height: 80px;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            border: 1px solid #e5e7eb;
+        }
+
+        .color-hex {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            user-select: none;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #1f2937;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateY(100%);
+            opacity: 0;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateY(0);
             opacity: 1;
         }
     </style>
 </head>
-<body class="bg-gray-100 p-4 sm:p-8">
-
-    <div class="container bg-white rounded-xl shadow-lg p-6 sm:p-10 my-8">
-        <h1 class="text-4xl font-bold text-center mb-2 text-gray-800">HTML, CSS, & JS Splitter</h1>
-        <p class="text-center text-gray-500 mb-8">Tempelkan kode HTML Anda dan pisahkan menjadi file terpisah.</p>
-
-        <!-- Input Section -->
-        <div class="mb-8">
-            <label for="inputHtml" class="block text-lg font-medium text-gray-700 mb-2">Tempelkan Kode HTML di sini:</label>
-            <textarea id="inputHtml" class="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Contoh: <html><head><style>...</style></head><body>...<script>...</script></body></html>"></textarea>
-            <div id="error-message" class="alert alert-error hidden mt-2"></div>
-        </div>
-
-        <!-- File Upload Section -->
-        <div class="flex items-center space-x-4 mb-8">
-            <label for="fileInput" class="text-gray-700 font-medium">Atau unggah file HTML:</label>
-            <input type="file" id="fileInput" class="hidden" accept=".html">
-            <button id="uploadButton" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg cursor-pointer transition duration-300">
-                Pilih File
-            </button>
-            <span id="fileName" class="text-gray-500 italic">Tidak ada file yang dipilih.</span>
-        </div>
+<body class="bg-gray-100 antialiased">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800">Generator Palet Warna</h1>
+        <p class="text-center text-gray-500">Pilih warna dasar dari roda warna, lalu pilih jenis palet.</p>
         
-        <div class="flex justify-center mb-8">
-            <button id="splitButton" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
-                Pisahkan File
-            </button>
+        <div class="flex flex-col items-center justify-center gap-4 md:flex-row md:justify-around">
+            <div class="color-picker-container">
+                <canvas id="color-picker-canvas" width="200" height="200"></canvas>
+                <div class="mt-2 text-center">
+                    <span id="hex-display" class="font-bold text-lg">#3498DB</span>
+                </div>
+                <div class="mt-2">
+                    <label for="hex-input" class="text-gray-700 font-medium">Atau Masukkan HEX:</label>
+                    <input type="text" id="hex-input" class="p-2 border border-gray-300 rounded-md text-center" value="#3498DB">
+                </div>
+            </div>
+            
+            <div class="flex flex-col gap-4 items-center">
+                <div class="flex flex-col gap-2 w-full">
+                    <label for="palette-type" class="text-gray-700 font-medium">Pilih Jenis Palet:</label>
+                    <select id="palette-type" class="p-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="monochromatic">Monokromatik</option>
+                        <option value="analogous">Analog</option>
+                        <option value="complementary">Komplementer</option>
+                        <option value="triadic">Triad</option>
+                        <option value="split-complementary">Split-Komplementer</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 w-full">
+                    <button id="refresh-btn" class="refresh-btn w-1/2">Refresh</button>
+                    <button id="save-btn" class="save-btn w-1/2">Simpan</button>
+                </div>
+            </div>
         </div>
 
-        <!-- Output Section -->
-        <div id="output-section" class="space-y-6 hidden">
-            
-            <!-- HTML Output -->
-            <div class="file-box">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Kode HTML (<span id="htmlSize">0 KB</span>)</h2>
-                    <div class="flex space-x-2">
-                        <button class="action-btn copy-btn" onclick="copyToClipboard('html')">Salin</button>
-                        <button class="action-btn" onclick="downloadFile('html')">Unduh</button>
-                    </div>
-                </div>
-                <pre id="outputHtml" class="bg-gray-50 text-gray-800 overflow-auto"></pre>
-            </div>
-            
-            <!-- CSS Output -->
-            <div class="file-box">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Kode CSS (<span id="cssSize">0 KB</span>)</h2>
-                    <div class="flex space-x-2">
-                        <button class="action-btn copy-btn" onclick="copyToClipboard('css')">Salin</button>
-                        <button class="action-btn" onclick="downloadFile('css')">Unduh</button>
-                    </div>
-                </div>
-                <pre id="outputCss" class="bg-gray-50 text-gray-800 overflow-auto"></pre>
-            </div>
-            
-            <!-- JS Output -->
-            <div class="file-box">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Kode JavaScript (<span id="jsSize">0 KB</span>)</h2>
-                    <div class="flex space-x-2">
-                        <button class="action-btn copy-btn" onclick="copyToClipboard('js')">Salin</button>
-                        <button class="action-btn" onclick="downloadFile('js')">Unduh</button>
-                    </div>
-                </div>
-                <pre id="outputJs" class="bg-gray-50 text-gray-800 overflow-auto"></pre>
-            </div>
+        <div class="palette-section">
+            <h2 id="palette-title" class="text-2xl font-bold text-gray-800 mb-2">Monokromatik</h2>
+            <div id="current-palette-container" class="palette-grid"></div>
+        </div>
+
+        <div id="saved-palettes-section" class="palette-section hidden">
+            <h2 class="text-2xl font-bold text-gray-800">Palet Tersimpan</h2>
+            <div id="saved-palettes-container" class="palette-grid"></div>
         </div>
     </div>
-    
-    <!-- Custom message box for "Copied!" notification -->
-    <div id="copied-message" class="copied-message">Tersalin!</div>
+
+    <div id="notification-area" class="notification">
+        Warna disalin ke clipboard!
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const splitButton = document.getElementById('splitButton');
-            const inputHtml = document.getElementById('inputHtml');
-            const outputSection = document.getElementById('output-section');
-            const outputHtml = document.getElementById('outputHtml');
-            const outputCss = document.getElementById('outputCss');
-            const outputJs = document.getElementById('outputJs');
-            const htmlSize = document.getElementById('htmlSize');
-            const cssSize = document.getElementById('cssSize');
-            const jsSize = document.getElementById('jsSize');
-            const errorMessage = document.getElementById('error-message');
-            const copiedMessage = document.getElementById('copied-message');
+        const canvas = document.getElementById('color-picker-canvas');
+        const ctx = canvas.getContext('2d');
+        const hexDisplay = document.getElementById('hex-display');
+        const hexInput = document.getElementById('hex-input');
+
+        const paletteTypeSelect = document.getElementById('palette-type');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const currentPaletteContainer = document.getElementById('current-palette-container');
+        const paletteTitle = document.getElementById('palette-title');
+        const savedPalettesContainer = document.getElementById('saved-palettes-container');
+        const savedPalettesSection = document.getElementById('saved-palettes-section');
+        const notificationArea = document.getElementById('notification-area');
+        
+        let selectedHue = 210; // Default blue hue
+        let selectedSaturation = 100;
+        let selectedLightness = 54;
+        let isDragging = false;
+        
+        // Objek untuk memetakan jenis palet ke nama yang ramah pengguna
+        const paletteNames = {
+            monochromatic: 'Monokromatik',
+            analogous: 'Analog',
+            complementary: 'Komplementer',
+            triadic: 'Triad',
+            'split-complementary': 'Split-Komplementer'
+        };
+
+        // Fungsi konversi HEX ke HSL
+        function hexToHsl(hex) {
+            let r = parseInt(hex.substring(1, 3), 16) / 255;
+            let g = parseInt(hex.substring(3, 5), 16) / 255;
+            let b = parseInt(hex.substring(5, 7), 16) / 255;
+
+            let cmin = Math.min(r, g, b),
+                cmax = Math.max(r, g, b),
+                delta = cmax - cmin,
+                h = 0,
+                s = 0,
+                l = 0;
+
+            if (delta === 0) h = 0;
+            else if (cmax === r) h = ((g - b) / delta) % 6;
+            else if (cmax === g) h = (b - r) / delta + 2;
+            else h = (r - g) / delta + 4;
+
+            h = Math.round(h * 60);
+            if (h < 0) h += 360;
+
+            l = (cmax + cmin) / 2;
+            s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+            s = +(s * 100).toFixed(1);
+            l = +(l * 100).toFixed(1);
+
+            return [h, s, l];
+        }
+
+        // Fungsi konversi HSL ke HEX
+        function hslToHex(h, s, l) {
+            s /= 100;
+            l /= 100;
+            let c = (1 - Math.abs(2 * l - 1)) * s,
+                x = c * (1 - Math.abs(((h / 60) % 2) - 1)),
+                m = l - c / 2,
+                r = 0,
+                g = 0,
+                b = 0;
+
+            if (0 <= h && h < 60) {
+                r = c; g = x; b = 0;
+            } else if (60 <= h && h < 120) {
+                r = x; g = c; b = 0;
+            } else if (120 <= h && h < 180) {
+                r = 0; g = c; b = x;
+            } else if (180 <= h && h < 240) {
+                r = 0; g = x; b = c;
+            } else if (240 <= h && h < 300) {
+                r = x; g = 0; b = c;
+            } else if (300 <= h && h < 360) {
+                r = c; g = 0; b = x;
+            }
+            r = Math.round((r + m) * 255).toString(16);
+            g = Math.round((g + m) * 255).toString(16);
+            b = Math.round((b + m) * 255).toString(16);
+
+            if (r.length === 1) r = "0" + r;
+            if (g.length === 1) g = "0" + g;
+            if (b.length === 1) b = "0" + b;
+
+            return "#" + r + g + b;
+        }
+
+        // Fungsi untuk menggambar roda warna di canvas
+        function drawColorWheel() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(centerX, centerY) - 10;
+            const innerRadius = radius * 0.7; // Radius untuk lingkaran dalam
             
-            // New file upload elements
-            const fileInput = document.getElementById('fileInput');
-            const uploadButton = document.getElementById('uploadButton');
-            const fileNameSpan = document.getElementById('fileName');
+            // Menggambar roda warna (lingkaran luar)
+            for (let i = 0; i < 360; i++) {
+                const angle = i * Math.PI / 180;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, (i + 1) * Math.PI / 180);
+                ctx.closePath();
+                ctx.fillStyle = `hsl(${i}, 100%, 50%)`;
+                ctx.fill();
+            }
 
-            // Trigger file input dialog when custom button is clicked
-            uploadButton.addEventListener('click', () => {
-                fileInput.click();
-            });
+            // Menggambar pemilih saturasi dan kecerahan (persegi dalam)
+            const squareSize = innerRadius * 2;
+            const squareX = centerX - innerRadius;
+            const squareY = centerY - innerRadius;
 
-            // Read the selected file and populate the textarea
-            fileInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    fileNameSpan.textContent = file.name;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        inputHtml.value = e.target.result;
-                        // Optional: automatically trigger the split after upload
-                        // splitCode(); 
-                    };
-                    reader.onerror = () => {
-                        errorMessage.textContent = 'Gagal membaca file.';
-                        errorMessage.classList.remove('hidden');
-                    };
-                    reader.readAsText(file);
-                } else {
-                    fileNameSpan.textContent = 'Tidak ada file yang dipilih.';
-                }
-            });
+            const gradientBlack = ctx.createLinearGradient(squareX, squareY, squareX, squareY + squareSize);
+            gradientBlack.addColorStop(0, 'rgba(0,0,0,0)');
+            gradientBlack.addColorStop(1, 'rgba(0,0,0,1)');
 
-            const splitCode = () => {
-                const htmlContent = inputHtml.value;
-                if (!htmlContent.trim()) {
-                    errorMessage.textContent = 'Harap tempelkan kode HTML terlebih dahulu.';
-                    errorMessage.classList.remove('hidden');
-                    return;
-                }
+            const gradientWhite = ctx.createLinearGradient(squareX, squareY, squareX + squareSize, squareY);
+            gradientWhite.addColorStop(0, 'rgba(255,255,255,1)');
+            gradientWhite.addColorStop(1, 'rgba(255,255,255,0)');
 
-                errorMessage.classList.add('hidden');
-                outputSection.classList.remove('hidden');
+            ctx.fillStyle = `hsl(${selectedHue}, 100%, 50%)`;
+            ctx.fillRect(squareX, squareY, squareSize, squareSize);
+            ctx.fillStyle = gradientBlack;
+            ctx.fillRect(squareX, squareY, squareSize, squareSize);
+            ctx.fillStyle = gradientWhite;
+            ctx.fillRect(squareX, squareY, squareSize, squareSize);
+        }
+        
+        // Fungsi untuk mengambil warna dari piksel canvas
+        function getColorFromPixel(x, y) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const radius = Math.min(centerX, centerY) - 10;
+            const innerRadius = radius * 0.7;
 
-                // Regex to find and extract script and style blocks
-                const cssRegex = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
-                const jsRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+            // Jika di dalam roda warna
+            if (distance > innerRadius && distance <= radius) {
+                const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+                selectedHue = angle;
+            }
+            // Jika di dalam kotak saturasi/kecerahan
+            else if (distance <= innerRadius) {
+                const squareSize = innerRadius * 2;
+                const squareX = centerX - innerRadius;
+                const squareY = centerY - innerRadius;
+                const relX = x - squareX;
+                const relY = y - squareY;
 
-                let cssContent = '';
-                let jsContent = '';
-                
-                // Extract CSS
-                let tempHtml = htmlContent;
-                let match;
-                while ((match = cssRegex.exec(tempHtml)) !== null) {
-                    cssContent += match[1].trim() + '\n';
-                }
-                
-                // Extract JS
-                while ((match = jsRegex.exec(tempHtml)) !== null) {
-                    jsContent += match[1].trim() + '\n';
-                }
+                selectedSaturation = Math.min(100, Math.max(0, (relX / squareSize) * 100));
+                selectedLightness = Math.min(100, Math.max(0, (1 - (relY / squareSize)) * 100));
+            }
+        }
+        
+        // Fungsi untuk memperbarui tampilan dan palet dari nilai HSL
+        function updateDisplayAndPalette() {
+            const hexColor = hslToHex(selectedHue, selectedSaturation, selectedLightness);
+            hexDisplay.textContent = hexColor.toUpperCase();
+            hexInput.value = hexColor.toUpperCase();
+            generateSelectedPalette();
+        }
 
-                // Clean the HTML by removing script and style tags
-                const cleanHtml = htmlContent.replace(cssRegex, '').replace(jsRegex, '').trim();
-
-                outputHtml.textContent = cleanHtml;
-                outputCss.textContent = cssContent || 'Tidak ada kode CSS ditemukan.';
-                outputJs.textContent = jsContent || 'Tidak ada kode JavaScript ditemukan.';
-                
-                // Update file sizes
-                htmlSize.textContent = (new Blob([cleanHtml]).size / 1024).toFixed(2) + ' KB';
-                cssSize.textContent = (new Blob([cssContent]).size / 1024).toFixed(2) + ' KB';
-                jsSize.textContent = (new Blob([jsContent]).size / 1024).toFixed(2) + ' KB';
-            };
-
-            const downloadFile = (type) => {
-                let content;
-                let filename;
-                let mimeType;
-
-                switch(type) {
-                    case 'html':
-                        content = outputHtml.textContent;
-                        filename = 'index.html';
-                        mimeType = 'text/html';
-                        break;
-                    case 'css':
-                        content = outputCss.textContent === 'Tidak ada kode CSS ditemukan.' ? '' : outputCss.textContent;
-                        filename = 'style.css';
-                        mimeType = 'text/css';
-                        break;
-                    case 'js':
-                        content = outputJs.textContent === 'Tidak ada kode JavaScript ditemukan.' ? '' : outputJs.textContent;
-                        filename = 'script.js';
-                        mimeType = 'text/javascript';
-                        break;
-                    default:
-                        return;
-                }
-
-                if (!content) {
-                    // Do not attempt to download empty content
-                    return;
-                }
-
-                const blob = new Blob([content], { type: mimeType });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            };
-
-            const copyToClipboard = (type) => {
-                let content;
-                switch(type) {
-                    case 'html':
-                        content = outputHtml.textContent;
-                        break;
-                    case 'css':
-                        content = outputCss.textContent;
-                        break;
-                    case 'js':
-                        content = outputJs.textContent;
-                        break;
-                    default:
-                        return;
-                }
-                
-                // Do not copy the placeholder text
-                if (content.includes('Tidak ada kode')) {
-                    return;
-                }
-
-                const textarea = document.createElement('textarea');
-                textarea.value = content;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-
-                // Show "Copied!" message
-                copiedMessage.classList.add('show');
-                setTimeout(() => {
-                    copiedMessage.classList.remove('show');
-                }, 2000);
-            };
-
-            splitButton.addEventListener('click', splitCode);
-            window.downloadFile = downloadFile;
-            window.copyToClipboard = copyToClipboard;
+        // Event listener untuk mouse
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            getColorFromPixel(x, y);
+            drawColorWheel();
+            updateDisplayAndPalette();
         });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            getColorFromPixel(x, y);
+            drawColorWheel();
+            updateDisplayAndPalette();
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Event listener untuk input teks HEX
+        hexInput.addEventListener('input', (e) => {
+            const hex = e.target.value;
+            // Validasi HEX code
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                const [h, s, l] = hexToHsl(hex);
+                selectedHue = h;
+                selectedSaturation = s;
+                selectedLightness = l;
+                drawColorWheel();
+                updateDisplayAndPalette();
+            }
+        });
+
+        // Fungsi untuk menampilkan notifikasi
+        function showNotification(message) {
+            notificationArea.textContent = message;
+            notificationArea.classList.add('show');
+            setTimeout(() => {
+                notificationArea.classList.remove('show');
+            }, 2000);
+        }
+
+        // Fungsi untuk membuat elemen warna
+        function createColorItem(hex) {
+            const colorItem = document.createElement('div');
+            colorItem.className = 'color-item';
+            
+            const colorBox = document.createElement('div');
+            colorBox.className = 'color-box';
+            colorBox.style.backgroundColor = hex;
+
+            const colorHex = document.createElement('span');
+            colorHex.className = 'color-hex';
+            colorHex.textContent = hex.toUpperCase();
+
+            colorItem.appendChild(colorBox);
+            colorItem.appendChild(colorHex);
+            
+            colorItem.addEventListener('click', () => {
+                const textToCopy = hex.toUpperCase();
+                // Menggunakan document.execCommand untuk kompatibilitas yang lebih luas
+                const tempInput = document.createElement('input');
+                document.body.appendChild(tempInput);
+                tempInput.value = textToCopy;
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                showNotification(`'${textToCopy}' disalin!`);
+            });
+
+            return colorItem;
+        }
+
+        // Fungsi untuk menampilkan warna di kontainer
+        function displayColors(colors, container) {
+            container.innerHTML = '';
+            colors.forEach(color => {
+                const item = createColorItem(color);
+                container.appendChild(item);
+            });
+        }
+        
+        // --- Fungsi untuk setiap jenis palet dengan variasi acak ---
+        function generateMonochromatic(h, s, l) {
+            const colors = [
+                hslToHex(h, s, Math.min(100, l * 0.5 + Math.random() * 20 - 10)),
+                hslToHex(h, s, Math.min(100, l * 0.7 + Math.random() * 10 - 5)),
+                hslToHex(h, s, Math.min(100, l * 0.9 + Math.random() * 5 - 2)),
+                hslToHex(h, s, Math.min(100, l * 1.1 + Math.random() * 5 - 2))
+            ];
+            displayColors(colors, currentPaletteContainer);
+            return colors;
+        }
+
+        function generateAnalogous(h, s, l) {
+            const offset = 20 + Math.random() * 20;
+            const colors = [
+                hslToHex((h + offset) % 360, s, l),
+                hslToHex(h, s, l),
+                hslToHex((h - offset + 360) % 360, s, l)
+            ];
+            displayColors(colors, currentPaletteContainer);
+            return colors;
+        }
+
+        function generateComplementary(h, s, l) {
+            const compH = (h + 180) % 360;
+            const colors = [
+                hslToHex(h, s, l),
+                hslToHex(compH, s, Math.min(100, l + Math.random() * 20 - 10))
+            ];
+            displayColors(colors, currentPaletteContainer);
+            return colors;
+        }
+
+        function generateTriadic(h, s, l) {
+            const offset = 120 + Math.random() * 10 - 5;
+            const colors = [
+                hslToHex(h, s, l),
+                hslToHex((h + offset) % 360, s, l),
+                hslToHex((h + offset * 2) % 360, s, l)
+            ];
+            displayColors(colors, currentPaletteContainer);
+            return colors;
+        }
+
+        function generateSplitComplementary(h, s, l) {
+            const colors = [
+                hslToHex(h, s, l),
+                hslToHex((h + 150) % 360, s, l),
+                hslToHex((h - 150 + 360) % 360, s, l)
+            ];
+            displayColors(colors, currentPaletteContainer);
+            return colors;
+        }
+        
+        // Map untuk fungsi generator
+        const generatorFunctions = {
+            monochromatic: generateMonochromatic,
+            analogous: generateAnalogous,
+            complementary: generateComplementary,
+            triadic: generateTriadic,
+            'split-complementary': generateSplitComplementary
+        };
+
+        // Fungsi untuk menghasilkan palet yang dipilih
+        function generateSelectedPalette() {
+            const paletteType = paletteTypeSelect.value;
+            paletteTitle.textContent = paletteNames[paletteType];
+            return generatorFunctions[paletteType](selectedHue, selectedSaturation, selectedLightness);
+        }
+
+        // Fungsi untuk menyimpan palet
+        function savePalette(colors, paletteName) {
+            let savedPalettes = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
+            savedPalettes.push({ name: paletteName, colors: colors });
+            localStorage.setItem('savedPalettes', JSON.stringify(savedPalettes));
+            loadSavedPalettes();
+            showNotification(`Palet '${paletteName}' berhasil disimpan!`);
+        }
+
+        // Fungsi untuk memuat dan menampilkan palet yang disimpan
+        function loadSavedPalettes() {
+            const savedPalettes = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
+            savedPalettesContainer.innerHTML = '';
+            if (savedPalettes.length > 0) {
+                savedPalettesSection.classList.remove('hidden');
+                savedPalettes.forEach(savedPalette => {
+                    const paletteHeader = document.createElement('div');
+                    paletteHeader.className = 'w-full flex justify-between items-center mt-4 mb-2';
+                    
+                    const title = document.createElement('h3');
+                    title.className = 'text-lg font-medium text-gray-700';
+                    title.textContent = savedPalette.name;
+                    paletteHeader.appendChild(title);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Hapus';
+                    deleteBtn.className = 'text-red-500 hover:text-red-700 text-sm';
+                    deleteBtn.addEventListener('click', () => {
+                        deleteSavedPalette(savedPalette.name, savedPalette.colors);
+                    });
+                    paletteHeader.appendChild(deleteBtn);
+                    
+                    savedPalettesContainer.appendChild(paletteHeader);
+
+                    const paletteGrid = document.createElement('div');
+                    paletteGrid.className = 'palette-grid';
+                    savedPalette.colors.forEach(color => {
+                        const item = createColorItem(color);
+                        paletteGrid.appendChild(item);
+                    });
+                    savedPalettesContainer.appendChild(paletteGrid);
+                });
+            } else {
+                savedPalettesSection.classList.add('hidden');
+            }
+        }
+        
+        // Fungsi untuk menghapus palet
+        function deleteSavedPalette(nameToDelete, colorsToDelete) {
+            let savedPalettes = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
+            const updatedPalettes = savedPalettes.filter(palette => 
+                !(palette.name === nameToDelete && JSON.stringify(palette.colors) === JSON.stringify(colorsToDelete))
+            );
+            localStorage.setItem('savedPalettes', JSON.stringify(updatedPalettes));
+            loadSavedPalettes();
+            showNotification('Palet berhasil dihapus!');
+        }
+
+        // Event listener untuk pilihan jenis palet
+        paletteTypeSelect.addEventListener('change', () => {
+            generateSelectedPalette();
+        });
+
+        // Event listener untuk tombol refresh
+        refreshBtn.addEventListener('click', () => {
+            generateSelectedPalette();
+        });
+
+        // Event listener untuk tombol simpan
+        saveBtn.addEventListener('click', () => {
+            const currentColors = generateSelectedPalette();
+            const paletteName = paletteNames[paletteTypeSelect.value];
+            savePalette(currentColors, paletteName);
+        });
+
+        // Memuat palet yang disimpan saat halaman dimuat
+        window.onload = () => {
+            drawColorWheel();
+            generateSelectedPalette();
+            loadSavedPalettes();
+        };
     </script>
 </body>
 </html>
