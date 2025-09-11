@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemisah File HTML, CSS & JS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 2rem;
+        }
+        .file-box {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        textarea, pre {
+            min-height: 200px;
+            width: 100%;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        textarea {
+            border: 1px solid #d1d5db;
+        }
+        .action-btn {
+            background-color: #1c64f2;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-block;
+        }
+        .action-btn.copy-btn {
+            background-color: #4b5563;
+        }
+        .action-btn:hover {
+            background-color: #1a56c4;
+        }
+        .action-btn.copy-btn:hover {
+            background-color: #374151;
+        }
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+        .alert-error {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+        .copied-message {
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #22c55e;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 100;
+        }
+        .copied-message.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
+
+    <div class="container bg-white rounded-xl shadow-lg p-6 sm:p-10 my-8">
+        <h1 class="text-4xl font-bold text-center mb-2 text-gray-800">HTML, CSS, & JS Splitter</h1>
+        <p class="text-center text-gray-500 mb-8">Tempelkan kode HTML Anda dan pisahkan menjadi file terpisah.</p>
+
+        <!-- Input Section -->
+        <div class="mb-8">
+            <label for="inputHtml" class="block text-lg font-medium text-gray-700 mb-2">Tempelkan Kode HTML di sini:</label>
+            <textarea id="inputHtml" class="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Contoh: <html><head><style>...</style></head><body>...<script>...</script></body></html>"></textarea>
+            <div id="error-message" class="alert alert-error hidden mt-2"></div>
+        </div>
+
+        <!-- File Upload Section -->
+        <div class="flex items-center space-x-4 mb-8">
+            <label for="fileInput" class="text-gray-700 font-medium">Atau unggah file HTML:</label>
+            <input type="file" id="fileInput" class="hidden" accept=".html">
+            <button id="uploadButton" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg cursor-pointer transition duration-300">
+                Pilih File
+            </button>
+            <span id="fileName" class="text-gray-500 italic">Tidak ada file yang dipilih.</span>
+        </div>
+        
+        <div class="flex justify-center mb-8">
+            <button id="splitButton" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300">
+                Pisahkan File
+            </button>
+        </div>
+
+        <!-- Output Section -->
+        <div id="output-section" class="space-y-6 hidden">
+            
+            <!-- HTML Output -->
+            <div class="file-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Kode HTML (<span id="htmlSize">0 KB</span>)</h2>
+                    <div class="flex space-x-2">
+                        <button class="action-btn copy-btn" onclick="copyToClipboard('html')">Salin</button>
+                        <button class="action-btn" onclick="downloadFile('html')">Unduh</button>
+                    </div>
+                </div>
+                <pre id="outputHtml" class="bg-gray-50 text-gray-800 overflow-auto"></pre>
+            </div>
+            
+            <!-- CSS Output -->
+            <div class="file-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Kode CSS (<span id="cssSize">0 KB</span>)</h2>
+                    <div class="flex space-x-2">
+                        <button class="action-btn copy-btn" onclick="copyToClipboard('css')">Salin</button>
+                        <button class="action-btn" onclick="downloadFile('css')">Unduh</button>
+                    </div>
+                </div>
+                <pre id="outputCss" class="bg-gray-50 text-gray-800 overflow-auto"></pre>
+            </div>
+            
+            <!-- JS Output -->
+            <div class="file-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Kode JavaScript (<span id="jsSize">0 KB</span>)</h2>
+                    <div class="flex space-x-2">
+                        <button class="action-btn copy-btn" onclick="copyToClipboard('js')">Salin</button>
+                        <button class="action-btn" onclick="downloadFile('js')">Unduh</button>
+                    </div>
+                </div>
+                <pre id="outputJs" class="bg-gray-50 text-gray-800 overflow-auto"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom message box for "Copied!" notification -->
+    <div id="copied-message" class="copied-message">Tersalin!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const splitButton = document.getElementById('splitButton');
+            const inputHtml = document.getElementById('inputHtml');
+            const outputSection = document.getElementById('output-section');
+            const outputHtml = document.getElementById('outputHtml');
+            const outputCss = document.getElementById('outputCss');
+            const outputJs = document.getElementById('outputJs');
+            const htmlSize = document.getElementById('htmlSize');
+            const cssSize = document.getElementById('cssSize');
+            const jsSize = document.getElementById('jsSize');
+            const errorMessage = document.getElementById('error-message');
+            const copiedMessage = document.getElementById('copied-message');
+            
+            // New file upload elements
+            const fileInput = document.getElementById('fileInput');
+            const uploadButton = document.getElementById('uploadButton');
+            const fileNameSpan = document.getElementById('fileName');
+
+            // Trigger file input dialog when custom button is clicked
+            uploadButton.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // Read the selected file and populate the textarea
+            fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    fileNameSpan.textContent = file.name;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        inputHtml.value = e.target.result;
+                        // Optional: automatically trigger the split after upload
+                        // splitCode(); 
+                    };
+                    reader.onerror = () => {
+                        errorMessage.textContent = 'Gagal membaca file.';
+                        errorMessage.classList.remove('hidden');
+                    };
+                    reader.readAsText(file);
+                } else {
+                    fileNameSpan.textContent = 'Tidak ada file yang dipilih.';
+                }
+            });
+
+            const splitCode = () => {
+                const htmlContent = inputHtml.value;
+                if (!htmlContent.trim()) {
+                    errorMessage.textContent = 'Harap tempelkan kode HTML terlebih dahulu.';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+
+                errorMessage.classList.add('hidden');
+                outputSection.classList.remove('hidden');
+
+                // Regex to find and extract script and style blocks
+                const cssRegex = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
+                const jsRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+
+                let cssContent = '';
+                let jsContent = '';
+                
+                // Extract CSS
+                let tempHtml = htmlContent;
+                let match;
+                while ((match = cssRegex.exec(tempHtml)) !== null) {
+                    cssContent += match[1].trim() + '\n';
+                }
+                
+                // Extract JS
+                while ((match = jsRegex.exec(tempHtml)) !== null) {
+                    jsContent += match[1].trim() + '\n';
+                }
+
+                // Clean the HTML by removing script and style tags
+                const cleanHtml = htmlContent.replace(cssRegex, '').replace(jsRegex, '').trim();
+
+                outputHtml.textContent = cleanHtml;
+                outputCss.textContent = cssContent || 'Tidak ada kode CSS ditemukan.';
+                outputJs.textContent = jsContent || 'Tidak ada kode JavaScript ditemukan.';
+                
+                // Update file sizes
+                htmlSize.textContent = (new Blob([cleanHtml]).size / 1024).toFixed(2) + ' KB';
+                cssSize.textContent = (new Blob([cssContent]).size / 1024).toFixed(2) + ' KB';
+                jsSize.textContent = (new Blob([jsContent]).size / 1024).toFixed(2) + ' KB';
+            };
+
+            const downloadFile = (type) => {
+                let content;
+                let filename;
+                let mimeType;
+
+                switch(type) {
+                    case 'html':
+                        content = outputHtml.textContent;
+                        filename = 'index.html';
+                        mimeType = 'text/html';
+                        break;
+                    case 'css':
+                        content = outputCss.textContent === 'Tidak ada kode CSS ditemukan.' ? '' : outputCss.textContent;
+                        filename = 'style.css';
+                        mimeType = 'text/css';
+                        break;
+                    case 'js':
+                        content = outputJs.textContent === 'Tidak ada kode JavaScript ditemukan.' ? '' : outputJs.textContent;
+                        filename = 'script.js';
+                        mimeType = 'text/javascript';
+                        break;
+                    default:
+                        return;
+                }
+
+                if (!content) {
+                    // Do not attempt to download empty content
+                    return;
+                }
+
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            const copyToClipboard = (type) => {
+                let content;
+                switch(type) {
+                    case 'html':
+                        content = outputHtml.textContent;
+                        break;
+                    case 'css':
+                        content = outputCss.textContent;
+                        break;
+                    case 'js':
+                        content = outputJs.textContent;
+                        break;
+                    default:
+                        return;
+                }
+                
+                // Do not copy the placeholder text
+                if (content.includes('Tidak ada kode')) {
+                    return;
+                }
+
+                const textarea = document.createElement('textarea');
+                textarea.value = content;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                // Show "Copied!" message
+                copiedMessage.classList.add('show');
+                setTimeout(() => {
+                    copiedMessage.classList.remove('show');
+                }, 2000);
+            };
+
+            splitButton.addEventListener('click', splitCode);
+            window.downloadFile = downloadFile;
+            window.copyToClipboard = copyToClipboard;
+        });
+    </script>
+</body>
+</html>
