@@ -1,15 +1,24 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Palette Generator</title>
+    <title>Prisma - Color Palette Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Fonts: Space Grotesk for headings (modern/aesthetic), Inter for body -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            /* Animated Gradient Background */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             color: #1f2937;
             display: flex;
             justify-content: center;
@@ -18,185 +27,437 @@
             padding: 2rem;
         }
 
-        .container {
-            max-width: 900px;
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Fade In Animation for Content */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-container {
+            max-width: 1000px;
             width: 100%;
-            background-color: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-            padding: 2.5rem;
+            /* Glassmorphism Effect */
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            padding: 3rem;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 2.5rem;
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        h1, h2, h3, .font-heading {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            border-bottom: 3px solid transparent;
+            color: #9ca3af;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background-color: var(--primary);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            width: 100%;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: #4b5563;
         }
 
         .color-picker-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
         #color-picker-canvas {
-            border-radius: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            cursor: crosshair;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
 
-        .refresh-btn, .save-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
+        #color-picker-canvas:hover {
+            transform: scale(1.02);
+        }
+
+        /* Image Upload Styles */
+        .upload-area {
+            width: 260px;
+            height: 260px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s;
+            transition: all 0.3s ease;
+            background-color: rgba(248, 250, 252, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: rgba(238, 242, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .upload-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .refresh-btn {
-            background-color: #4f46e5;
-            color: white;
+            background-color: #e0e7ff;
+            color: #4338ca;
         }
 
         .refresh-btn:hover {
-            background-color: #4338ca;
+            background-color: #c7d2fe;
             transform: translateY(-2px);
         }
 
         .save-btn {
-            background-color: #10b981;
+            background-color: #1f2937;
             color: white;
         }
 
         .save-btn:hover {
-            background-color: #059669;
+            background-color: #000;
             transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
-        .palette-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .palette-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        
+        /* --- CARD STYLES --- */
         .palette-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
         }
 
-        .color-item {
+        .palette-card {
+            height: 180px;
+            width: 100%; 
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            font-family: 'Space Grotesk', sans-serif;
+            background: white;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
-        .color-item:hover {
-            transform: translateY(-5px);
+        .palette-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
-        .color-box {
+        .palette-display {
+            display: flex;
+            height: 85%;
             width: 100%;
-            height: 80px;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s;
-            border: 1px solid #e5e7eb;
         }
 
-        .color-hex {
-            font-size: 0.875rem;
-            font-weight: 500;
+        .palette-strip {
+            height: 100%;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: flex 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            position: relative;
+        }
+        
+        .palette-strip span {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            pointer-events: none; 
+        }
+
+        .palette-strip:hover {
+            flex: 2.5; 
+            z-index: 10;
+        }
+
+        .palette-strip:hover span {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .palette-stats {
+            height: 15%;
+            width: 100%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5em;
+            box-sizing: border-box;
+            color: #9ca3af;
+            border-top: 1px solid #f3f4f6;
+            font-size: 0.85rem;
+        }
+
+        .palette-stats .palette-name {
+            font-weight: 600;
             color: #4b5563;
-            user-select: none;
+        }
+
+        .delete-icon {
+            color: #d1d5db;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .delete-icon:hover {
+            color: #ef4444; 
         }
 
         .notification {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #1f2937;
+            bottom: 30px;
+            right: 30px;
+            background-color: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(5px);
             color: white;
             padding: 1rem 1.5rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateY(100%);
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            transform: translateY(150%);
             opacity: 0;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
         }
 
         .notification.show {
             transform: translateY(0);
             opacity: 1;
         }
+
+        /* Custom Select */
+        .select-wrapper {
+            position: relative;
+        }
+        .select-wrapper select {
+            appearance: none;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .select-wrapper select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
     </style>
 </head>
-<body class="bg-gray-100 antialiased">
-    <div class="container">
-        <h1 class="text-3xl font-bold text-center text-gray-800">Generator Palet Warna</h1>
-        <p class="text-center text-gray-500">Pilih warna dasar dari roda warna, lalu pilih jenis palet.</p>
+<body class="antialiased">
+    <div class="main-container">
+        <!-- Header with Logo -->
+        <div class="flex flex-col items-center justify-center gap-2 mb-2">
+            <div class="flex items-center gap-3">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="5" width="10" height="10" rx="3" fill="#6366F1" fill-opacity="0.8"/>
+                    <rect x="20" y="5" width="10" height="10" rx="3" fill="#EC4899" fill-opacity="0.8"/>
+                    <rect x="5" y="20" width="10" height="10" rx="3" fill="#14B8A6" fill-opacity="0.8"/>
+                    <rect x="20" y="20" width="10" height="10" rx="3" fill="#F59E0B" fill-opacity="0.8"/>
+                </svg>                
+                <h1 class="text-4xl font-bold text-gray-900 tracking-tight">Prisma</h1>
+            </div>
+            <p class="text-gray-500 font-medium">Aesthetic Color Palette Generator</p>
+        </div>
         
-        <div class="flex flex-col items-center justify-center gap-4 md:flex-row md:justify-around">
-            <div class="color-picker-container">
-                <canvas id="color-picker-canvas" width="200" height="200"></canvas>
-                <div class="mt-2 text-center">
-                    <span id="hex-display" class="font-bold text-lg">#3498DB</span>
+        <!-- Tab Navigation -->
+        <div class="flex justify-center border-b border-gray-200 mb-6 w-full max-w-md mx-auto">
+            <button id="tab-wheel" class="tab-btn active" onclick="switchTab('wheel')">Color Wheel</button>
+            <button id="tab-image" class="tab-btn" onclick="switchTab('image')">From Image</button>
+        </div>
+        
+        <div class="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-20 py-4">
+            
+            <!-- LEFT COLUMN: INPUT (Wheel or Image) -->
+            <div class="flex flex-col items-center justify-center relative">
+                <!-- Mode: Color Wheel -->
+                <div id="mode-wheel" class="color-picker-container relative group">
+                    <div class="relative">
+                        <canvas id="color-picker-canvas" width="260" height="260"></canvas>
+                    </div>
+                    <div class="mt-6 flex flex-col items-center bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-100">
+                        <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase mb-1">Base Color</span>
+                        <div class="flex items-center gap-2">
+                            <div id="color-preview-dot" class="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <input type="text" id="hex-input" class="font-mono font-bold text-xl text-gray-800 text-center focus:outline-none w-28 bg-transparent transition-colors uppercase" value="#3498DB">
+                        </div>
+                    </div>
                 </div>
-                <div class="mt-2">
-                    <label for="hex-input" class="text-gray-700 font-medium">Atau Masukkan HEX:</label>
-                    <input type="text" id="hex-input" class="p-2 border border-gray-300 rounded-md text-center" value="#3498DB">
+
+                <!-- Mode: Image Upload (Hidden by default) -->
+                <div id="mode-image" class="hidden flex-col items-center gap-4">
+                    <div class="upload-area" id="drop-zone">
+                        <input type="file" id="image-input" accept="image/*" class="hidden">
+                        <div id="upload-placeholder" class="text-center p-6">
+                            <div class="bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-500">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <span class="text-gray-700 font-semibold block">Click or Drop Image</span>
+                            <span class="text-xs text-gray-400 mt-1">Supports JPG, PNG</span>
+                        </div>
+                        <img id="uploaded-image" class="hidden w-full h-full object-cover" alt="Uploaded Preview">
+                    </div>
+                    <p class="text-xs text-gray-400 font-medium text-center max-w-[250px]">Auto-extract 5 distinct aesthetic colors from your photo.</p>
                 </div>
             </div>
             
-            <div class="flex flex-col gap-4 items-center">
-                <div class="flex flex-col gap-2 w-full">
-                    <label for="palette-type" class="text-gray-700 font-medium">Pilih Jenis Palet:</label>
-                    <select id="palette-type" class="p-2 border border-gray-300 rounded-md shadow-sm">
-                        <option value="monochromatic">Monokromatik</option>
-                        <option value="analogous">Analog</option>
-                        <option value="complementary">Komplementer</option>
-                        <option value="triadic">Triad</option>
-                        <option value="split-complementary">Split-Komplementer</option>
-                    </select>
+            <!-- RIGHT COLUMN: OPTIONS & ACTIONS -->
+            <div class="flex flex-col gap-6 w-full lg:w-1/3">
+                <!-- Harmony Select (Only for Wheel Mode) -->
+                <div id="harmony-control" class="flex flex-col gap-2 w-full transition-all duration-300">
+                    <label for="palette-type" class="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Color Harmony</label>
+                    <div class="select-wrapper">
+                        <select id="palette-type">
+                            <option value="monochromatic">Monochromatic</option>
+                            <option value="analogous">Analogous</option>
+                            <option value="complementary">Complementary</option>
+                            <option value="triadic">Triadic</option>
+                            <option value="split-complementary">Split Complementary</option>
+                            <option value="tetradic">Tetradic (Rectangle)</option>
+                            <option value="square">Square</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex gap-2 w-full">
-                    <button id="refresh-btn" class="refresh-btn w-1/2">Refresh</button>
-                    <button id="save-btn" class="save-btn w-1/2">Simpan</button>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-4 w-full">
+                    <!-- Refresh Button -->
+                    <button id="refresh-btn" class="btn refresh-btn w-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        Randomize
+                    </button>
+                    <!-- Save Button -->
+                    <button id="save-btn" class="btn save-btn w-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        Save Palette
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="palette-section">
-            <h2 id="palette-title" class="text-2xl font-bold text-gray-800 mb-2">Monokromatik</h2>
-            <div id="current-palette-container" class="palette-grid"></div>
+        <div class="palette-section mt-2">
+            <h2 id="palette-title" class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                <span class="w-2 h-8 rounded-full bg-indigo-500 block"></span>
+                Current Palette
+            </h2>
+            <div id="current-palette-container" class="w-full"></div>
         </div>
 
-        <div id="saved-palettes-section" class="palette-section hidden">
-            <h2 class="text-2xl font-bold text-gray-800">Palet Tersimpan</h2>
+        <div id="saved-palettes-section" class="palette-section hidden mt-8 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3">
+                <span class="w-2 h-8 rounded-full bg-emerald-500 block"></span>
+                Saved Collection
+            </h2>
             <div id="saved-palettes-container" class="palette-grid"></div>
         </div>
     </div>
 
     <div id="notification-area" class="notification">
-        Warna disalin ke clipboard!
+        <div class="bg-green-500 rounded-full p-1">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <span id="notif-msg">Color copied to clipboard!</span>
     </div>
 
     <script>
+        // Global State
+        let currentMode = 'wheel'; // 'wheel' or 'image'
+        let currentPaletteColors = [];
+        let selectedHue = 210;
+        let selectedSaturation = 100;
+        let selectedLightness = 54;
+        let isDragging = false;
+
+        // Elements
         const canvas = document.getElementById('color-picker-canvas');
         const ctx = canvas.getContext('2d');
-        const hexDisplay = document.getElementById('hex-display');
         const hexInput = document.getElementById('hex-input');
-
+        const colorPreviewDot = document.getElementById('color-preview-dot');
         const paletteTypeSelect = document.getElementById('palette-type');
         const refreshBtn = document.getElementById('refresh-btn');
         const saveBtn = document.getElementById('save-btn');
@@ -205,33 +466,202 @@
         const savedPalettesContainer = document.getElementById('saved-palettes-container');
         const savedPalettesSection = document.getElementById('saved-palettes-section');
         const notificationArea = document.getElementById('notification-area');
+        const notifMsg = document.getElementById('notif-msg');
         
-        let selectedHue = 210; // Default blue hue
-        let selectedSaturation = 100;
-        let selectedLightness = 54;
-        let isDragging = false;
+        // Mode Elements
+        const modeWheel = document.getElementById('mode-wheel');
+        const modeImage = document.getElementById('mode-image');
+        const btnTabWheel = document.getElementById('tab-wheel');
+        const btnTabImage = document.getElementById('tab-image');
+        const harmonyControl = document.getElementById('harmony-control');
         
-        // Objek untuk memetakan jenis palet ke nama yang ramah pengguna
+        // Image Upload Elements
+        const dropZone = document.getElementById('drop-zone');
+        const imageInput = document.getElementById('image-input');
+        const uploadedImage = document.getElementById('uploaded-image');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+
         const paletteNames = {
-            monochromatic: 'Monokromatik',
-            analogous: 'Analog',
-            complementary: 'Komplementer',
-            triadic: 'Triad',
-            'split-complementary': 'Split-Komplementer'
+            monochromatic: 'Monochromatic',
+            analogous: 'Analogous',
+            complementary: 'Complementary',
+            triadic: 'Triadic',
+            'split-complementary': 'Split Complementary',
+            tetradic: 'Tetradic',
+            square: 'Square'
         };
 
-        // Fungsi konversi HEX ke HSL
+        // --- TAB SWITCHING ---
+        function switchTab(mode) {
+            currentMode = mode;
+            
+            if (mode === 'wheel') {
+                modeWheel.classList.remove('hidden');
+                modeImage.classList.add('hidden');
+                modeImage.classList.remove('flex');
+                
+                btnTabWheel.classList.add('active');
+                btnTabImage.classList.remove('active');
+                
+                harmonyControl.style.opacity = '1';
+                harmonyControl.style.pointerEvents = 'auto';
+                refreshBtn.style.display = 'flex';
+                saveBtn.classList.remove('w-full');
+                saveBtn.classList.add('w-1/2');
+
+                generateSelectedPalette();
+            } else {
+                modeWheel.classList.add('hidden');
+                modeImage.classList.remove('hidden');
+                modeImage.classList.add('flex');
+
+                btnTabWheel.classList.remove('active');
+                btnTabImage.classList.add('active');
+                
+                harmonyControl.style.opacity = '0.3';
+                harmonyControl.style.pointerEvents = 'none';
+                refreshBtn.style.display = 'none';
+                saveBtn.classList.remove('w-1/2');
+                saveBtn.classList.add('w-full');
+
+                if (uploadedImage.src && !uploadedImage.classList.contains('hidden')) {
+                    extractColorsFromImage(uploadedImage);
+                } else {
+                    currentPaletteContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center w-full py-12 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+                            <p class="text-gray-400 font-medium italic">Upload an image to generate a palette</p>
+                        </div>`;
+                }
+            }
+        }
+        
+        window.switchTab = switchTab; 
+
+        // --- IMAGE UPLOAD LOGIC ---
+        dropZone.addEventListener('click', () => imageInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#6366f1';
+            dropZone.style.backgroundColor = 'rgba(238, 242, 255, 0.8)';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#cbd5e1';
+            dropZone.style.backgroundColor = 'rgba(248, 250, 252, 0.5)';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#cbd5e1';
+            dropZone.style.backgroundColor = 'rgba(248, 250, 252, 0.5)';
+            
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleImageFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleImageFile(e.target.files[0]);
+            }
+        });
+
+        function handleImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImage.src = e.target.result;
+                uploadedImage.classList.remove('hidden');
+                uploadPlaceholder.classList.add('hidden');
+                uploadedImage.onload = () => extractColorsFromImage(uploadedImage);
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // --- COLOR EXTRACTION ALGORITHM ---
+        function extractColorsFromImage(imgElement) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const scale = Math.min(150 / imgElement.naturalWidth, 150 / imgElement.naturalHeight);
+            canvas.width = imgElement.naturalWidth * scale;
+            canvas.height = imgElement.naturalHeight * scale;
+            
+            ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            const colorCounts = {};
+            const quantization = 20; 
+            
+            for (let i = 0; i < imageData.length; i += 4) {
+                const r = imageData[i];
+                const g = imageData[i + 1];
+                const b = imageData[i + 2];
+                const a = imageData[i + 3];
+
+                if (a < 128) continue; 
+                
+                const rQ = Math.round(r / quantization) * quantization;
+                const gQ = Math.round(g / quantization) * quantization;
+                const bQ = Math.round(b / quantization) * quantization;
+                
+                const key = `${rQ},${gQ},${bQ}`;
+                if (!colorCounts[key]) colorCounts[key] = { count: 0, r: rQ, g: gQ, b: bQ };
+                colorCounts[key].count++;
+            }
+
+            let sortedColors = Object.values(colorCounts).sort((a, b) => b.count - a.count);
+            
+            const finalPalette = [];
+            const minDistance = 50; 
+
+            for (const color of sortedColors) {
+                if (finalPalette.length >= 5) break;
+                
+                const isDistinct = finalPalette.every(p => {
+                    const d = Math.sqrt(
+                        Math.pow(p.r - color.r, 2) +
+                        Math.pow(p.g - color.g, 2) +
+                        Math.pow(p.b - color.b, 2)
+                    );
+                    return d > minDistance;
+                });
+
+                if (isDistinct || finalPalette.length === 0) {
+                    finalPalette.push(color);
+                }
+            }
+
+            if (finalPalette.length < 5) {
+                for (const color of sortedColors) {
+                    if (finalPalette.length >= 5) break;
+                    if (!finalPalette.includes(color)) finalPalette.push(color);
+                }
+            }
+
+            const hexColors = finalPalette.map(c => {
+                const toHex = x => {
+                    const hex = Math.max(0, Math.min(255, x)).toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                };
+                return `#${toHex(c.r)}${toHex(c.g)}${toHex(c.b)}`.toUpperCase();
+            });
+
+            currentPaletteColors = hexColors;
+            // Update UI title for image mode
+            paletteTitle.innerHTML = `<span class="w-2 h-8 rounded-full bg-indigo-500 block"></span> Extracted from Image`;
+            renderPalette(hexColors, "Image Extraction", false);
+        }
+
+        // --- CORE COLOR LOGIC (Wheel) ---
         function hexToHsl(hex) {
             let r = parseInt(hex.substring(1, 3), 16) / 255;
             let g = parseInt(hex.substring(3, 5), 16) / 255;
             let b = parseInt(hex.substring(5, 7), 16) / 255;
 
-            let cmin = Math.min(r, g, b),
-                cmax = Math.max(r, g, b),
-                delta = cmax - cmin,
-                h = 0,
-                s = 0,
-                l = 0;
+            let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin;
+            let h = 0, s = 0, l = 0;
 
             if (delta === 0) h = 0;
             else if (cmax === r) h = ((g - b) / delta) % 6;
@@ -240,368 +670,352 @@
 
             h = Math.round(h * 60);
             if (h < 0) h += 360;
-
             l = (cmax + cmin) / 2;
             s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-            s = +(s * 100).toFixed(1);
-            l = +(l * 100).toFixed(1);
-
-            return [h, s, l];
+            
+            return [h, +(s * 100).toFixed(1), +(l * 100).toFixed(1)];
         }
 
-        // Fungsi konversi HSL ke HEX
         function hslToHex(h, s, l) {
-            s /= 100;
-            l /= 100;
+            s /= 100; l /= 100;
             let c = (1 - Math.abs(2 * l - 1)) * s,
                 x = c * (1 - Math.abs(((h / 60) % 2) - 1)),
                 m = l - c / 2,
-                r = 0,
-                g = 0,
-                b = 0;
+                r = 0, g = 0, b = 0;
 
-            if (0 <= h && h < 60) {
-                r = c; g = x; b = 0;
-            } else if (60 <= h && h < 120) {
-                r = x; g = c; b = 0;
-            } else if (120 <= h && h < 180) {
-                r = 0; g = c; b = x;
-            } else if (180 <= h && h < 240) {
-                r = 0; g = x; b = c;
-            } else if (240 <= h && h < 300) {
-                r = x; g = 0; b = c;
-            } else if (300 <= h && h < 360) {
-                r = c; g = 0; b = x;
-            }
-            r = Math.round((r + m) * 255).toString(16);
-            g = Math.round((g + m) * 255).toString(16);
-            b = Math.round((b + m) * 255).toString(16);
+            if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+            else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+            else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+            else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+            else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+            else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
 
-            if (r.length === 1) r = "0" + r;
-            if (g.length === 1) g = "0" + g;
-            if (b.length === 1) b = "0" + b;
-
-            return "#" + r + g + b;
+            const toHex = x => {
+                const hex = Math.round((x + m) * 255).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            };
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
         }
 
-        // Fungsi untuk menggambar roda warna di canvas
+        // --- CANVAS LOGIC ---
         function drawColorWheel() {
             const width = canvas.width;
             const height = canvas.height;
             const centerX = width / 2;
             const centerY = height / 2;
             const radius = Math.min(centerX, centerY) - 10;
-            const innerRadius = radius * 0.7; // Radius untuk lingkaran dalam
             
-            // Menggambar roda warna (lingkaran luar)
+            ctx.clearRect(0,0, width, height);
+
+            // Shadow for wheel
+            ctx.shadowColor = "rgba(0,0,0,0.1)";
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 5;
+
             for (let i = 0; i < 360; i++) {
                 const angle = i * Math.PI / 180;
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, angle, (i + 1) * Math.PI / 180);
+                ctx.arc(centerX, centerY, radius, angle, (i + 1.5) * Math.PI / 180);
                 ctx.closePath();
                 ctx.fillStyle = `hsl(${i}, 100%, 50%)`;
                 ctx.fill();
             }
+            
+            // Reset shadow
+            ctx.shadowColor = "transparent";
 
-            // Menggambar pemilih saturasi dan kecerahan (persegi dalam)
-            const squareSize = innerRadius * 2;
-            const squareX = centerX - innerRadius;
-            const squareY = centerY - innerRadius;
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+            gradient.addColorStop(0, 'white');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.globalAlpha = 0.5;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
 
-            const gradientBlack = ctx.createLinearGradient(squareX, squareY, squareX, squareY + squareSize);
-            gradientBlack.addColorStop(0, 'rgba(0,0,0,0)');
-            gradientBlack.addColorStop(1, 'rgba(0,0,0,1)');
+            // --- INDICATOR (CURSOR) ---
+            const angleRad = selectedHue * (Math.PI / 180);
+            const dist = (selectedSaturation / 100) * radius;
+            
+            const indicX = centerX + dist * Math.cos(angleRad);
+            const indicY = centerY + dist * Math.sin(angleRad);
 
-            const gradientWhite = ctx.createLinearGradient(squareX, squareY, squareX + squareSize, squareY);
-            gradientWhite.addColorStop(0, 'rgba(255,255,255,1)');
-            gradientWhite.addColorStop(1, 'rgba(255,255,255,0)');
+            // Pulsing effect
+            ctx.beginPath();
+            ctx.arc(indicX, indicY, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.fill();
 
-            ctx.fillStyle = `hsl(${selectedHue}, 100%, 50%)`;
-            ctx.fillRect(squareX, squareY, squareSize, squareSize);
-            ctx.fillStyle = gradientBlack;
-            ctx.fillRect(squareX, squareY, squareSize, squareSize);
-            ctx.fillStyle = gradientWhite;
-            ctx.fillRect(squareX, squareY, squareSize, squareSize);
+            ctx.beginPath();
+            ctx.arc(indicX, indicY, 6, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'white'; 
+            ctx.lineWidth = 2.5;
+            ctx.stroke(); 
+
+            ctx.beginPath();
+            ctx.arc(indicX, indicY, 4.5, 0, 2 * Math.PI);
+            ctx.fillStyle = hslToHex(selectedHue, selectedSaturation, selectedLightness);
+            ctx.fill(); 
         }
         
-        // Fungsi untuk mengambil warna dari piksel canvas
         function getColorFromPixel(x, y) {
-            const width = canvas.width;
-            const height = canvas.height;
-            const centerX = width / 2;
-            const centerY = height / 2;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
             const dx = x - centerX;
             const dy = y - centerY;
+            const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
             const distance = Math.sqrt(dx * dx + dy * dy);
             const radius = Math.min(centerX, centerY) - 10;
-            const innerRadius = radius * 0.7;
-
-            // Jika di dalam roda warna
-            if (distance > innerRadius && distance <= radius) {
-                const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+            
+            if (distance <= radius) {
                 selectedHue = angle;
+                selectedSaturation = Math.min(100, (distance / radius) * 100);
+                selectedLightness = 50 + (1 - (distance / radius)) * 40; 
+                return true;
             }
-            // Jika di dalam kotak saturasi/kecerahan
-            else if (distance <= innerRadius) {
-                const squareSize = innerRadius * 2;
-                const squareX = centerX - innerRadius;
-                const squareY = centerY - innerRadius;
-                const relX = x - squareX;
-                const relY = y - squareY;
-
-                selectedSaturation = Math.min(100, Math.max(0, (relX / squareSize) * 100));
-                selectedLightness = Math.min(100, Math.max(0, (1 - (relY / squareSize)) * 100));
-            }
+            return false;
         }
         
-        // Fungsi untuk memperbarui tampilan dan palet dari nilai HSL
         function updateDisplayAndPalette() {
             const hexColor = hslToHex(selectedHue, selectedSaturation, selectedLightness);
-            hexDisplay.textContent = hexColor.toUpperCase();
-            hexInput.value = hexColor.toUpperCase();
+            hexInput.value = hexColor;
+            colorPreviewDot.style.backgroundColor = hexColor;
             generateSelectedPalette();
-        }
-
-        // Event listener untuk mouse
-        canvas.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            getColorFromPixel(x, y);
             drawColorWheel();
-            updateDisplayAndPalette();
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            getColorFromPixel(x, y);
-            drawColorWheel();
-            updateDisplayAndPalette();
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-
-        // Event listener untuk input teks HEX
-        hexInput.addEventListener('input', (e) => {
-            const hex = e.target.value;
-            // Validasi HEX code
-            if (/^#[0-9A-F]{6}$/i.test(hex)) {
-                const [h, s, l] = hexToHsl(hex);
-                selectedHue = h;
-                selectedSaturation = s;
-                selectedLightness = l;
-                drawColorWheel();
-                updateDisplayAndPalette();
-            }
-        });
-
-        // Fungsi untuk menampilkan notifikasi
-        function showNotification(message) {
-            notificationArea.textContent = message;
-            notificationArea.classList.add('show');
-            setTimeout(() => {
-                notificationArea.classList.remove('show');
-            }, 2000);
         }
 
-        // Fungsi untuk membuat elemen warna
-        function createColorItem(hex) {
-            const colorItem = document.createElement('div');
-            colorItem.className = 'color-item';
-            
-            const colorBox = document.createElement('div');
-            colorBox.className = 'color-box';
-            colorBox.style.backgroundColor = hex;
-
-            const colorHex = document.createElement('span');
-            colorHex.className = 'color-hex';
-            colorHex.textContent = hex.toUpperCase();
-
-            colorItem.appendChild(colorBox);
-            colorItem.appendChild(colorHex);
-            
-            colorItem.addEventListener('click', () => {
-                const textToCopy = hex.toUpperCase();
-                // Menggunakan document.execCommand untuk kompatibilitas yang lebih luas
-                const tempInput = document.createElement('input');
-                document.body.appendChild(tempInput);
-                tempInput.value = textToCopy;
-                tempInput.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempInput);
-                showNotification(`'${textToCopy}' disalin!`);
-            });
-
-            return colorItem;
-        }
-
-        // Fungsi untuk menampilkan warna di kontainer
-        function displayColors(colors, container) {
-            container.innerHTML = '';
-            colors.forEach(color => {
-                const item = createColorItem(color);
-                container.appendChild(item);
-            });
-        }
-        
-        // --- Fungsi untuk setiap jenis palet dengan variasi acak ---
-        function generateMonochromatic(h, s, l) {
-            const colors = [
-                hslToHex(h, s, Math.min(100, l * 0.5 + Math.random() * 20 - 10)),
-                hslToHex(h, s, Math.min(100, l * 0.7 + Math.random() * 10 - 5)),
-                hslToHex(h, s, Math.min(100, l * 0.9 + Math.random() * 5 - 2)),
-                hslToHex(h, s, Math.min(100, l * 1.1 + Math.random() * 5 - 2))
-            ];
-            displayColors(colors, currentPaletteContainer);
-            return colors;
-        }
-
-        function generateAnalogous(h, s, l) {
-            const offset = 20 + Math.random() * 20;
-            const colors = [
-                hslToHex((h + offset) % 360, s, l),
+        // --- WHEEL GENERATORS ---
+        const generators = {
+            monochromatic: (h,s,l) => [
+                hslToHex(h, s, Math.max(10, l - 30)),
+                hslToHex(h, s, Math.max(15, l - 15)),
                 hslToHex(h, s, l),
-                hslToHex((h - offset + 360) % 360, s, l)
-            ];
-            displayColors(colors, currentPaletteContainer);
-            return colors;
-        }
-
-        function generateComplementary(h, s, l) {
-            const compH = (h + 180) % 360;
-            const colors = [
+                hslToHex(h, s, Math.min(90, l + 15)),
+                hslToHex(h, s, Math.min(95, l + 30))
+            ],
+            analogous: (h,s,l) => [
+                hslToHex((h - 30 + 360) % 360, s, l),
                 hslToHex(h, s, l),
-                hslToHex(compH, s, Math.min(100, l + Math.random() * 20 - 10))
-            ];
-            displayColors(colors, currentPaletteContainer);
-            return colors;
-        }
-
-        function generateTriadic(h, s, l) {
-            const offset = 120 + Math.random() * 10 - 5;
-            const colors = [
+                hslToHex((h + 30) % 360, s, l)
+            ],
+            complementary: (h,s,l) => [
                 hslToHex(h, s, l),
-                hslToHex((h + offset) % 360, s, l),
-                hslToHex((h + offset * 2) % 360, s, l)
-            ];
-            displayColors(colors, currentPaletteContainer);
-            return colors;
-        }
-
-        function generateSplitComplementary(h, s, l) {
-            const colors = [
+                hslToHex((h + 180) % 360, s, l)
+            ],
+            triadic: (h,s,l) => [
+                hslToHex(h, s, l),
+                hslToHex((h + 120) % 360, s, l),
+                hslToHex((h + 240) % 360, s, l)
+            ],
+            'split-complementary': (h,s,l) => [
                 hslToHex(h, s, l),
                 hslToHex((h + 150) % 360, s, l),
-                hslToHex((h - 150 + 360) % 360, s, l)
-            ];
-            displayColors(colors, currentPaletteContainer);
-            return colors;
-        }
-        
-        // Map untuk fungsi generator
-        const generatorFunctions = {
-            monochromatic: generateMonochromatic,
-            analogous: generateAnalogous,
-            complementary: generateComplementary,
-            triadic: generateTriadic,
-            'split-complementary': generateSplitComplementary
+                hslToHex((h + 210) % 360, s, l)
+            ],
+            tetradic: (h,s,l) => [
+                hslToHex(h, s, l),
+                hslToHex((h + 60) % 360, s, l),
+                hslToHex((h + 180) % 360, s, l),
+                hslToHex((h + 240) % 360, s, l)
+            ],
+            square: (h,s,l) => [
+                hslToHex(h, s, l),
+                hslToHex((h + 90) % 360, s, l),
+                hslToHex((h + 180) % 360, s, l),
+                hslToHex((h + 270) % 360, s, l)
+            ]
         };
 
-        // Fungsi untuk menghasilkan palet yang dipilih
+        // --- UI & RENDER LOGIC ---
+
+        function createPaletteCard(colors, name, isSaved = false) {
+            const card = document.createElement('div');
+            card.className = 'palette-card';
+            if(!isSaved) {
+                card.style.height = '160px'; // Slightly taller for main
+                card.style.boxShadow = 'none';
+                card.style.border = 'none';
+                card.style.borderRadius = '1.5rem';
+            }
+
+            const paletteDisplay = document.createElement('div');
+            paletteDisplay.className = 'palette-display';
+            if(!isSaved) paletteDisplay.style.height = '100%'; 
+
+            colors.forEach(color => {
+                const strip = document.createElement('div');
+                strip.className = 'palette-strip';
+                strip.style.backgroundColor = color;
+                
+                const span = document.createElement('span');
+                span.textContent = color.replace('#', '');
+                strip.appendChild(span);
+
+                strip.addEventListener('click', () => {
+                    const temp = document.createElement('input');
+                    document.body.appendChild(temp);
+                    temp.value = color;
+                    temp.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(temp);
+                    showNotification(`${color} Copied!`);
+                });
+
+                paletteDisplay.appendChild(strip);
+            });
+
+            card.appendChild(paletteDisplay);
+
+            if (isSaved) {
+                const stats = document.createElement('div');
+                stats.className = 'palette-stats';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'palette-name';
+                nameSpan.textContent = name;
+                
+                const deleteIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                deleteIcon.setAttribute("width", "18");
+                deleteIcon.setAttribute("height", "18");
+                deleteIcon.setAttribute("viewBox", "0 0 24 24");
+                deleteIcon.setAttribute("fill", "currentColor");
+                deleteIcon.classList.add("delete-icon");
+                deleteIcon.innerHTML = `<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+                
+                deleteIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteSavedPalette(name, colors);
+                });
+
+                stats.appendChild(nameSpan);
+                stats.appendChild(deleteIcon);
+                card.appendChild(stats);
+            }
+
+            return card;
+        }
+
+        function renderPalette(colors, name, isSaved) {
+             const card = createPaletteCard(colors, name, isSaved);
+             currentPaletteContainer.innerHTML = '';
+             currentPaletteContainer.appendChild(card);
+        }
+
         function generateSelectedPalette() {
-            const paletteType = paletteTypeSelect.value;
-            paletteTitle.textContent = paletteNames[paletteType];
-            return generatorFunctions[paletteType](selectedHue, selectedSaturation, selectedLightness);
+            if (currentMode !== 'wheel') return;
+            
+            const type = paletteTypeSelect.value;
+            // Update title with aesthetic icon
+            paletteTitle.innerHTML = `<span class="w-2 h-8 rounded-full bg-indigo-500 block"></span> ${paletteNames[type]}`;
+            currentPaletteColors = generators[type](selectedHue, selectedSaturation, selectedLightness);
+            renderPalette(currentPaletteColors, paletteNames[type], false);
         }
 
-        // Fungsi untuk menyimpan palet
-        function savePalette(colors, paletteName) {
-            let savedPalettes = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
-            savedPalettes.push({ name: paletteName, colors: colors });
-            localStorage.setItem('savedPalettes', JSON.stringify(savedPalettes));
+        function savePalette(colors, name) {
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const prefix = currentMode === 'image' ? 'Img' : name;
+            const uniqueName = `${prefix} • ${timestamp}`;
+            
+            let saved = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
+            saved.push({ name: uniqueName, colors: colors });
+            localStorage.setItem('savedPalettes', JSON.stringify(saved));
             loadSavedPalettes();
-            showNotification(`Palet '${paletteName}' berhasil disimpan!`);
+            showNotification('Palette Saved Successfully!');
         }
 
-        // Fungsi untuk memuat dan menampilkan palet yang disimpan
         function loadSavedPalettes() {
-            const savedPalettes = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
+            const saved = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
             savedPalettesContainer.innerHTML = '';
-            if (savedPalettes.length > 0) {
+            
+            if (saved.length > 0) {
                 savedPalettesSection.classList.remove('hidden');
-                savedPalettes.forEach(savedPalette => {
-                    const paletteHeader = document.createElement('div');
-                    paletteHeader.className = 'w-full flex justify-between items-center mt-4 mb-2';
-                    
-                    const title = document.createElement('h3');
-                    title.className = 'text-lg font-medium text-gray-700';
-                    title.textContent = savedPalette.name;
-                    paletteHeader.appendChild(title);
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = 'Hapus';
-                    deleteBtn.className = 'text-red-500 hover:text-red-700 text-sm';
-                    deleteBtn.addEventListener('click', () => {
-                        deleteSavedPalette(savedPalette.name, savedPalette.colors);
-                    });
-                    paletteHeader.appendChild(deleteBtn);
-                    
-                    savedPalettesContainer.appendChild(paletteHeader);
-
-                    const paletteGrid = document.createElement('div');
-                    paletteGrid.className = 'palette-grid';
-                    savedPalette.colors.forEach(color => {
-                        const item = createColorItem(color);
-                        paletteGrid.appendChild(item);
-                    });
-                    savedPalettesContainer.appendChild(paletteGrid);
+                saved.slice().reverse().forEach(p => {
+                    const card = createPaletteCard(p.colors, p.name, true);
+                    savedPalettesContainer.appendChild(card);
                 });
             } else {
                 savedPalettesSection.classList.add('hidden');
             }
         }
-        
-        // Fungsi untuk menghapus palet
-        function deleteSavedPalette(nameToDelete, colorsToDelete) {
-            let savedPalettes = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
-            const updatedPalettes = savedPalettes.filter(palette => 
-                !(palette.name === nameToDelete && JSON.stringify(palette.colors) === JSON.stringify(colorsToDelete))
-            );
-            localStorage.setItem('savedPalettes', JSON.stringify(updatedPalettes));
+
+        function deleteSavedPalette(name, colors) {
+            let saved = JSON.parse(localStorage.getItem('savedPalettes') || '[]');
+            const updated = saved.filter(p => p.name !== name);
+            localStorage.setItem('savedPalettes', JSON.stringify(updated));
             loadSavedPalettes();
-            showNotification('Palet berhasil dihapus!');
+            showNotification('Palette Deleted.');
         }
 
-        // Event listener untuk pilihan jenis palet
-        paletteTypeSelect.addEventListener('change', () => {
-            generateSelectedPalette();
+        function showNotification(message) {
+            notifMsg.textContent = message;
+            notificationArea.classList.add('show');
+            setTimeout(() => notificationArea.classList.remove('show'), 2500);
+        }
+
+        // --- EVENT LISTENERS ---
+        ['mousedown', 'mousemove'].forEach(evtType => {
+            canvas.addEventListener(evtType, (e) => {
+                if (currentMode !== 'wheel') return;
+                if (evtType === 'mousedown') isDragging = true;
+                if (!isDragging) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (getColorFromPixel(x, y)) {
+                    updateDisplayAndPalette();
+                }
+            });
         });
 
-        // Event listener untuk tombol refresh
+        window.addEventListener('mouseup', () => isDragging = false);
+
+        hexInput.addEventListener('input', (e) => {
+            if (currentMode !== 'wheel') return;
+            const hex = e.target.value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                const [h, s, l] = hexToHsl(hex);
+                selectedHue = h; selectedSaturation = s; selectedLightness = l;
+                updateDisplayAndPalette();
+            }
+        });
+
+        paletteTypeSelect.addEventListener('change', generateSelectedPalette);
+        
         refreshBtn.addEventListener('click', () => {
-            generateSelectedPalette();
+            if (currentMode !== 'wheel') return;
+            selectedHue = Math.floor(Math.random() * 360);
+            selectedSaturation = 70 + Math.random() * 30;
+            selectedLightness = 40 + Math.random() * 20;
+            updateDisplayAndPalette();
+            // Animate refresh button
+            refreshBtn.classList.add('animate-spin-once');
+            setTimeout(() => refreshBtn.classList.remove('animate-spin-once'), 500);
         });
 
-        // Event listener untuk tombol simpan
         saveBtn.addEventListener('click', () => {
-            const currentColors = generateSelectedPalette();
-            const paletteName = paletteNames[paletteTypeSelect.value];
-            savePalette(currentColors, paletteName);
+            if (currentPaletteColors.length > 0) {
+                let name = "Custom";
+                if (currentMode === 'wheel') {
+                    name = paletteNames[paletteTypeSelect.value];
+                } else {
+                    name = "Extracted";
+                }
+                savePalette(currentPaletteColors, name);
+            }
         });
 
-        // Memuat palet yang disimpan saat halaman dimuat
+        // Init
         window.onload = () => {
             drawColorWheel();
             generateSelectedPalette();
             loadSavedPalettes();
         };
+
     </script>
 </body>
 </html>
